@@ -1,0 +1,49 @@
+$ -m jdk.compiler/com.sun.tools.javac.Main Pipeline.java PipelineTest.java
+
+$ PipelineTest
+All 13 checks passed.
+
+$ Pipeline
+CPU Pipeline Timing Explorer
+Forwarding: true
+I1: LDW R1, R0, #0
+I2: ADD R2, R1, R3
+I3: XOR R4, R2, R5
+I4: ADD R6, R0, #1
+
+Cycle    IF    ID    EX   MEM    WB    Event
+    1  I1    .     .     .     .     
+    2  I2    I1    .     .     .     
+    3  I3    I2    I1    .     .     
+    4  I3    I2    .     I1    .       STALL
+    5  I4    I3    I2    .     I1    
+    6  .     I4    I3    I2    .     
+    7  .     .     I4    I3    I2    
+    8  .     .     .     I4    I3    
+    9  .     .     .     .     I4    
+
+Instructions: 4 | Cycles: 9 | Stalls: 1 | CPI: 2.25
+
+$ Pipeline --no-forwarding
+CPU Pipeline Timing Explorer
+Forwarding: false
+I1: LDW R1, R0, #0
+I2: ADD R2, R1, R3
+I3: XOR R4, R2, R5
+I4: ADD R6, R0, #1
+
+Cycle    IF    ID    EX   MEM    WB    Event
+    1  I1    .     .     .     .     
+    2  I2    I1    .     .     .     
+    3  I3    I2    I1    .     .     
+    4  I3    I2    .     I1    .       STALL
+    5  I3    I2    .     .     I1      STALL
+    6  I4    I3    I2    .     .     
+    7  I4    I3    .     I2    .       STALL
+    8  I4    I3    .     .     I2      STALL
+    9  .     I4    I3    .     .     
+   10  .     .     I4    I3    .     
+   11  .     .     .     I4    I3    
+   12  .     .     .     .     I4    
+
+Instructions: 4 | Cycles: 12 | Stalls: 4 | CPI: 3.00
